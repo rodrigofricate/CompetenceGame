@@ -1,0 +1,2 @@
+# CompetenceGame
+ Este game feito em Unity é uma versão adaptada de um projeto real, desenvolvido para uma organização treinar as competências de seus colaboradores. Para uso em portifólio, esta versão foi adaptada e transformada em uma demo. Cabe ressaltar que este game foi elaborado para ser utilizado por um mediador, que deve julgar algumas das alternativas propostas e avaliar manualmente se estão corretas ou não, sendo este um pedido do contratante do projeto original. 
