@@ -1,0 +1,145 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Random = UnityEngine.Random;
+
+public class Dice : MonoBehaviour
+{
+   
+    Vector3 diceStartPosition;
+
+    [SerializeField] Transform[] diceFaces;
+    Rigidbody rb;
+    [SerializeField] int rollValue = 0;
+
+    [SerializeField] Material regularMatrial;
+    [SerializeField] Material shinningMaterial;
+    bool canRoll;
+
+    public Action actionAfterRollDice;
+
+
+
+    void Start()
+    {
+        diceStartPosition = transform.position;
+
+        rb = GetComponent<Rigidbody>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+        if (canRoll)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+            {
+                if (hit.transform.CompareTag("Dice"))
+                {
+                    gameObject.GetComponent<MeshRenderer>().material = shinningMaterial;
+                    if (Input.GetKeyDown(KeyCode.Mouse0))
+                    {
+                        RollDice(actionAfterRollDice);
+                    }
+                }
+                else
+                {
+                    gameObject.GetComponent<MeshRenderer>().material = regularMatrial;
+                }
+
+            }
+        }
+
+    }
+
+    //privado
+    void ResetDicePosition()
+    {
+        transform.position = diceStartPosition;
+    }
+
+
+
+    //Publicos
+    public int GetRollValue() { return rollValue; }
+    public void PrepareToRollDice()
+    {
+        canRoll = true;
+    }
+    public void RollDice()
+    {
+        StartCoroutine(RollDiceRoutine());
+    }
+    public void RollDice(Action callbackRoutine)
+    {
+        StartCoroutine(RollDiceRoutine(callbackRoutine));
+    }
+
+    //Rotinas
+    IEnumerator RollDiceRoutine(Action callbackRoutine)
+    {
+        canRoll = false;
+        gameObject.GetComponent<MeshRenderer>().material = regularMatrial;
+
+        AudioManager.Instance.PlayFX(AudioManager.Instance.rollDice);
+
+        Vector3 _force = new Vector3(0, Random.Range(80, 110), 0);
+        Vector3 _torque = new Vector3(Random.Range(100, 1000), Random.Range(100, 1000), Random.Range(100, 1000));
+        rb.AddForce(_force * Random.Range(5, 10));
+        rb.AddTorque(_torque * Random.Range(5, 100));
+
+        while (!rb.IsSleeping())
+        {
+            yield return null;
+        }
+        int _RollValue = 1;
+        float yPos = diceFaces[0].position.y;
+
+        for (int i = 1; i < diceFaces.Length; i++)
+        {
+            if (diceFaces[i].position.y > yPos)
+            {
+                yPos = diceFaces[i].position.y;
+                _RollValue = i + 1;
+            }
+        }
+        rollValue = _RollValue;
+        ResetDicePosition();
+        callbackRoutine.Invoke();
+    }
+    IEnumerator RollDiceRoutine()
+    {
+        canRoll = false;
+        gameObject.GetComponent<MeshRenderer>().material = regularMatrial;
+
+        AudioManager.Instance.PlayFX(AudioManager.Instance.rollDice);
+
+        Vector3 _force = new Vector3(0, Random.Range(80, 110), 0);
+        Vector3 _torque = new Vector3(Random.Range(100, 1000), Random.Range(100, 1000), Random.Range(100, 1000));
+        rb.AddForce(_force * Random.Range(5, 10));
+        rb.AddTorque(_torque * Random.Range(5, 100));
+
+        while (!rb.IsSleeping())
+        {
+            yield return null;
+        }
+        int _RollValue = 1;
+        float yPos = diceFaces[0].position.y;
+
+        for (int i = 1; i < diceFaces.Length; i++)
+        {
+            if (diceFaces[i].position.y > yPos)
+            {
+                yPos = diceFaces[i].position.y;
+                _RollValue = i + 1;
+            }
+        }
+        rollValue = _RollValue;
+        ResetDicePosition();
+        Board.Instance.GetCurrentPlayer().GetComponent<Player>().MovePlayer();
+    }
+}
